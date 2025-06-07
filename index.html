@@ -1,0 +1,1837 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deep Learning Quiz</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .quiz-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            max-width: 800px;
+            width: 100%;
+            padding: 40px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .quiz-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+        }
+
+        .quiz-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .quiz-title {
+            color: #333;
+            font-size: 2.5em;
+            font-weight: 700;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .progress-container {
+            background: #f0f0f0;
+            border-radius: 10px;
+            height: 10px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            border-radius: 10px;
+            transition: width 0.3s ease;
+            width: 2%;
+        }
+
+        .question-counter {
+            text-align: center;
+            color: #666;
+            font-size: 1.1em;
+            margin-bottom: 20px;
+        }
+
+        .question-container {
+            margin-bottom: 30px;
+        }
+
+        .question {
+            font-size: 1.3em;
+            color: #333;
+            margin-bottom: 20px;
+            line-height: 1.5;
+            font-weight: 600;
+        }
+
+        .options {
+            display: grid;
+            gap: 15px;
+        }
+
+        .option {
+            padding: 15px 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: #fafafa;
+            font-size: 1.1em;
+        }
+
+        .option:hover {
+            border-color: #667eea;
+            background: #f0f4ff;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.1);
+        }
+
+        .option.selected {
+            border-color: #667eea;
+            background: #667eea;
+            color: white;
+        }
+
+        .option.correct {
+            border-color: #28a745;
+            background: #28a745;
+            color: white;
+        }
+
+        .option.incorrect {
+            border-color: #dc3545;
+            background: #dc3545;
+            color: white;
+        }
+
+        .feedback {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 10px;
+            font-weight: 600;
+            display: none;
+        }
+
+        .feedback.correct {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .feedback.incorrect {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+            gap: 15px;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 25px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn-next {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            flex: 1;
+        }
+
+        .btn-next:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-next:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .btn-exit {
+            background: #dc3545;
+            color: white;
+            padding: 12px 25px;
+        }
+
+        .btn-exit:hover {
+            background: #c82333;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(220, 53, 69, 0.3);
+        }
+
+        .results {
+            text-align: center;
+            display: none;
+        }
+
+        .score {
+            font-size: 3em;
+            font-weight: 700;
+            margin: 20px 0;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .score-message {
+            font-size: 1.3em;
+            margin-bottom: 30px;
+            color: #333;
+        }
+
+        @media (max-width: 600px) {
+            .quiz-container {
+                padding: 20px;
+            }
+            
+            .quiz-title {
+                font-size: 2em;
+            }
+            
+            .question {
+                font-size: 1.1em;
+            }
+            
+            .controls {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="quiz-container">
+        <div class="quiz-header">
+            <h1 class="quiz-title">Deep Learning Quiz - Supplementary study material prepared by Prof. Rahul M. Samant</h1>
+            <div class="progress-container">
+                <div class="progress-bar" id="progressBar"></div>
+            </div>
+            <div class="question-counter" id="questionCounter">Question 1 of 50</div>
+        </div>
+
+        <div id="quizContent">
+            <div class="question-container">
+                <div class="question" id="question"></div>
+                <div class="options" id="options"></div>
+                <div class="feedback" id="feedback"></div>
+            </div>
+
+            <div class="controls">
+                <button class="btn btn-exit" onclick="exitQuiz()">Exit Quiz</button>
+                <button class="btn btn-next" id="nextBtn" onclick="nextQuestion()" disabled>Next Question</button>
+            </div>
+        </div>
+
+        <div class="results" id="results">
+            <h2>Quiz Complete!</h2>
+            <div class="score" id="finalScore"></div>
+            <div class="score-message" id="scoreMessage"></div>
+            <button class="btn btn-next" onclick="restartQuiz()">Restart Quiz</button>
+        </div>
+    </div>
+
+    <script>
+        const questions = [
+            {
+                question: "What does 'deep' in deep learning refer to?",
+                options: ["Large datasets", "Many layers in neural networks", "Complex algorithms", "High computational power"],
+                correct: 1,
+                explanation: "Deep learning refers to neural networks with many layers (depth), typically more than 3 hidden layers."
+            },
+            {
+                question: "Which activation function is most commonly used in hidden layers of modern neural networks?",
+                options: ["Sigmoid", "Tanh", "ReLU", "Linear"],
+                correct: 2,
+                explanation: "ReLU (Rectified Linear Unit) is widely used because it helps mitigate the vanishing gradient problem and is computationally efficient."
+            },
+            {
+                question: "What is the primary purpose of backpropagation?",
+                options: ["Forward pass computation", "Weight initialization", "Gradient computation for weight updates", "Data preprocessing"],
+                correct: 2,
+                explanation: "Backpropagation computes gradients of the loss function with respect to network weights, enabling weight updates through gradient descent."
+            },
+            {
+                question: "Which problem does batch normalization primarily address?",
+                options: ["Overfitting", "Internal covariate shift", "Vanishing gradients", "All of the above"],
+                correct: 3,
+                explanation: "Batch normalization addresses multiple issues: internal covariate shift, helps with vanishing gradients, and has a regularizing effect that reduces overfitting."
+            },
+            {
+                question: "What is dropout used for in neural networks?",
+                options: ["Faster training", "Regularization", "Better accuracy", "Memory optimization"],
+                correct: 1,
+                explanation: "Dropout is a regularization technique that randomly sets some neurons to zero during training to prevent overfitting."
+            },
+            {
+                question: "In CNN, what does a convolutional layer do?",
+                options: ["Reduces image size", "Applies filters to detect features", "Flattens the input", "Normalizes pixel values"],
+                correct: 1,
+                explanation: "Convolutional layers apply learnable filters (kernels) to input data to detect local features like edges, textures, and patterns."
+            },
+            {
+                question: "What is the vanishing gradient problem?",
+                options: ["Gradients become too large", "Gradients become very small in deep networks", "Gradients oscillate", "Gradients become negative"],
+                correct: 1,
+                explanation: "The vanishing gradient problem occurs when gradients become exponentially small as they propagate back through deep networks, making learning in early layers very slow."
+            },
+            {
+                question: "Which optimizer is known for adaptive learning rates?",
+                options: ["SGD", "Adam", "Momentum", "RMSprop"],
+                correct: 1,
+                explanation: "Adam (Adaptive Moment Estimation) adapts learning rates for each parameter individually based on first and second moments of gradients."
+            },
+            {
+                question: "What is the purpose of pooling layers in CNNs?",
+                options: ["Feature extraction", "Dimensionality reduction", "Adding non-linearity", "Weight sharing"],
+                correct: 1,
+                explanation: "Pooling layers reduce spatial dimensions of feature maps, decreasing computational load and providing translation invariance."
+            },
+            {
+                question: "What does RNN stand for?",
+                options: ["Random Neural Network", "Recurrent Neural Network", "Recursive Neural Network", "Robust Neural Network"],
+                correct: 1,
+                explanation: "RNN stands for Recurrent Neural Network, which processes sequential data by maintaining hidden states across time steps."
+            },
+            {
+                question: "What is the main advantage of LSTM over vanilla RNN?",
+                options: ["Faster training", "Better handling of long sequences", "Less parameters", "Simpler architecture"],
+                correct: 1,
+                explanation: "LSTM (Long Short-Term Memory) can better capture long-term dependencies in sequences through its gating mechanisms."
+            },
+            {
+                question: "What is transfer learning?",
+                options: ["Moving data between systems", "Using pre-trained models for new tasks", "Transferring gradients", "Converting model formats"],
+                correct: 1,
+                explanation: "Transfer learning involves using a pre-trained model as a starting point for a new, related task, often requiring less data and training time."
+            },
+            {
+                question: "Which loss function is typically used for binary classification?",
+                options: ["Mean Squared Error", "Binary Cross-Entropy", "Categorical Cross-Entropy", "Hinge Loss"],
+                correct: 1,
+                explanation: "Binary Cross-Entropy (or Binary Log Loss) is the standard loss function for binary classification problems."
+            },
+            {
+                question: "What is the purpose of the softmax function?",
+                options: ["Activation in hidden layers", "Converting logits to probabilities", "Gradient computation", "Feature scaling"],
+                correct: 1,
+                explanation: "Softmax converts raw logits into probability distributions, commonly used in the output layer for multi-class classification."
+            },
+            {
+                question: "What does GAN stand for?",
+                options: ["General Adversarial Network", "Generative Adversarial Network", "Gradient Adversarial Network", "Global Adversarial Network"],
+                correct: 1,
+                explanation: "GAN stands for Generative Adversarial Network, consisting of a generator and discriminator trained in competition."
+            },
+            {
+                question: "In a typical CNN for image classification, what comes after convolutional layers?",
+                options: ["More convolutional layers", "Pooling layers", "Fully connected layers", "All of the above"],
+                correct: 3,
+                explanation: "CNNs typically stack convolutional and pooling layers for feature extraction, followed by fully connected layers for classification."
+            },
+            {
+                question: "What is the purpose of weight initialization in neural networks?",
+                options: ["Setting weights to zero", "Random weight assignment", "Breaking symmetry and enabling learning", "Making weights large"],
+                correct: 2,
+                explanation: "Proper weight initialization breaks symmetry between neurons and provides a good starting point for gradient-based optimization."
+            },
+            {
+                question: "Which technique helps prevent overfitting besides dropout?",
+                options: ["Increasing model complexity", "Early stopping", "Using more data", "Both B and C"],
+                correct: 3,
+                explanation: "Early stopping (monitoring validation loss) and using more training data are both effective techniques to prevent overfitting."
+            },
+            {
+                question: "What is the main idea behind residual connections (ResNet)?",
+                options: ["Reducing parameters", "Skip connections to ease gradient flow", "Increasing depth", "Batch processing"],
+                correct: 1,
+                explanation: "Residual connections allow gradients to flow directly through skip connections, enabling training of very deep networks."
+            },
+            {
+                question: "What is attention mechanism in neural networks?",
+                options: ["A regularization technique", "A way to focus on relevant parts of input", "An optimization algorithm", "A normalization method"],
+                correct: 1,
+                explanation: "Attention mechanisms allow models to dynamically focus on different parts of the input sequence, improving performance on sequential tasks."
+            },
+            {
+                question: "What is the difference between parameters and hyperparameters?",
+                options: ["No difference", "Parameters are learned, hyperparameters are set manually", "Parameters are set manually, hyperparameters are learned", "Both are always learned"],
+                correct: 1,
+                explanation: "Parameters (weights, biases) are learned during training, while hyperparameters (learning rate, batch size) are set before training."
+            },
+            {
+                question: "What is data augmentation?",
+                options: ["Adding more data to dataset", "Artificially increasing dataset through transformations", "Removing noisy data", "Normalizing data"],
+                correct: 1,
+                explanation: "Data augmentation creates new training examples by applying transformations (rotation, scaling, etc.) to existing data."
+            },
+            {
+                question: "What is the purpose of validation data?",
+                options: ["Final model testing", "Hyperparameter tuning and model selection", "Training the model", "Data preprocessing"],
+                correct: 1,
+                explanation: "Validation data is used to tune hyperparameters and select the best model during development without touching the test set."
+            },
+            {
+                question: "What is gradient descent?",
+                options: ["A neural network architecture", "An optimization algorithm", "A loss function", "An activation function"],
+                correct: 1,
+                explanation: "Gradient descent is an optimization algorithm that iteratively adjusts parameters in the direction of steepest descent of the loss function."
+            },
+            {
+                question: "What is the purpose of the learning rate?",
+                options: ["Control how fast the model learns", "Set the number of epochs", "Determine batch size", "Initialize weights"],
+                correct: 0,
+                explanation: "Learning rate controls the step size in gradient descent, determining how quickly the model parameters are updated."
+            },
+            {
+                question: "What is feature extraction in the context of deep learning?",
+                options: ["Manual feature engineering", "Automatic learning of relevant features", "Data cleaning", "Dimension reduction"],
+                correct: 1,
+                explanation: "Deep learning models automatically learn hierarchical features from raw data, eliminating the need for manual feature engineering."
+            },
+            {
+                question: "What is the purpose of normalization in neural networks?",
+                options: ["Reduce training time", "Improve gradient flow and stability", "Increase accuracy", "All of the above"],
+                correct: 3,
+                explanation: "Normalization (like batch norm) improves gradient flow, training stability, reduces training time, and often improves accuracy."
+            },
+            {
+                question: "What is cross-validation used for?",
+                options: ["Model training", "Model evaluation and selection", "Data preprocessing", "Feature selection"],
+                correct: 1,
+                explanation: "Cross-validation provides a robust estimate of model performance and helps in model selection by using multiple train-validation splits."
+            },
+            {
+                question: "What is the difference between epoch and iteration?",
+                options: ["No difference", "Epoch is one pass through entire dataset, iteration is one batch", "Epoch is one batch, iteration is entire dataset", "Both mean the same"],
+                correct: 1,
+                explanation: "An epoch is one complete pass through the entire training dataset, while an iteration is processing one batch of data."
+            },
+            {
+                question: "What is the purpose of the bias term in neural networks?",
+                options: ["Prevent overfitting", "Shift the activation function", "Initialize weights", "Compute gradients"],
+                correct: 1,
+                explanation: "Bias terms allow neurons to shift their activation functions, providing more flexibility in learning complex patterns."
+            },
+            {
+                question: "What is ensemble learning?",
+                options: ["Training one large model", "Combining multiple models", "Using parallel processing", "Data augmentation technique"],
+                correct: 1,
+                explanation: "Ensemble learning combines predictions from multiple models to achieve better performance than individual models."
+            },
+            {
+                question: "What is the purpose of feature maps in CNNs?",
+                options: ["Store original images", "Represent detected features at different layers", "Reduce computation", "Initialize weights"],
+                correct: 1,
+                explanation: "Feature maps are the outputs of convolutional layers, representing different features detected at various abstraction levels."
+            },
+            {
+                question: "What is fine-tuning in transfer learning?",
+                options: ["Training from scratch", "Adjusting pre-trained model weights for new task", "Hyperparameter optimization", "Data preprocessing"],
+                correct: 1,
+                explanation: "Fine-tuning involves taking a pre-trained model and further training it on a new dataset, typically with a lower learning rate."
+            },
+            {
+                question: "What is the vanishing gradient problem most commonly solved by?",
+                options: ["Using deeper networks", "ReLU activation and residual connections", "Increasing learning rate", "Adding more data"],
+                correct: 1,
+                explanation: "ReLU activations and residual connections (skip connections) are primary solutions to the vanishing gradient problem."
+            },
+            {
+                question: "What is the purpose of embedding layers?",
+                options: ["Reduce overfitting", "Convert categorical data to dense vectors", "Normalize inputs", "Add non-linearity"],
+                correct: 1,
+                explanation: "Embedding layers convert discrete categorical variables (like words) into dense, continuous vector representations."
+            },
+            {
+                question: "What is gradient clipping?",
+                options: ["A regularization technique", "Preventing exploding gradients", "Feature selection method", "Data preprocessing step"],
+                correct: 1,
+                explanation: "Gradient clipping prevents exploding gradients by limiting the magnitude of gradients during backpropagation."
+            },
+            {
+                question: "What is the main advantage of using mini-batch gradient descent?",
+                options: ["Always faster convergence", "Balance between computational efficiency and gradient accuracy", "Uses less memory", "Simpler implementation"],
+                correct: 1,
+                explanation: "Mini-batch gradient descent balances the computational efficiency of batch processing with more frequent updates than full-batch gradient descent."
+            },
+            {
+                question: "What is the purpose of max pooling?",
+                options: ["Feature extraction", "Taking maximum value in a region", "Adding non-linearity", "Weight sharing"],
+                correct: 1,
+                explanation: "Max pooling takes the maximum value in each region, providing translation invariance and reducing spatial dimensions."
+            },
+            {
+                question: "What is catastrophic forgetting?",
+                options: ["Memory overflow", "Forgetting old tasks when learning new ones", "Gradient explosion", "Data corruption"],
+                correct: 1,
+                explanation: "Catastrophic forgetting occurs when a neural network forgets previously learned tasks upon learning new tasks."
+            },
+            {
+                question: "What is the purpose of the flatten layer in CNNs?",
+                options: ["Reduce dimensions", "Convert 2D feature maps to 1D vector", "Add non-linearity", "Normalize features"],
+                correct: 1,
+                explanation: "Flatten layer converts multi-dimensional feature maps into a 1D vector to feed into fully connected layers."
+            },
+            {
+                question: "What is teacher forcing in RNNs?",
+                options: ["A training technique using true outputs", "A regularization method", "An optimization algorithm", "A normalization technique"],
+                correct: 0,
+                explanation: "Teacher forcing uses the true target outputs as inputs during training, instead of the model's own predictions."
+            },
+            {
+                question: "What is the difference between generative and discriminative models?",
+                options: ["No difference", "Generative models learn P(X,Y), discriminative learn P(Y|X)", "Generative models are always better", "Discriminative models are unsupervised"],
+                correct: 1,
+                explanation: "Generative models learn the joint distribution P(X,Y), while discriminative models learn the conditional distribution P(Y|X)."
+            },
+            {
+                question: "What is the purpose of learning rate scheduling?",
+                options: ["Keep learning rate constant", "Adjust learning rate during training", "Initialize learning rate", "Set batch size"],
+                correct: 1,
+                explanation: "Learning rate scheduling adjusts the learning rate during training, typically decreasing it to fine-tune the model as training progresses."
+            },
+            {
+                question: "What is the main challenge in training very deep networks?",
+                options: ["Too many parameters", "Gradient flow problems", "Slow computation", "Memory constraints"],
+                correct: 1,
+                explanation: "The main challenge is gradient flow problems (vanishing/exploding gradients) that make it difficult for deep networks to learn effectively."
+            },
+            {
+                question: "What is the purpose of skip connections in neural networks?",
+                options: ["Reduce parameters", "Improve gradient flow", "Speed up training", "Add regularization"],
+                correct: 1,
+                explanation: "Skip connections allow gradients to flow directly to earlier layers, solving the vanishing gradient problem in deep networks."
+            },
+            {
+                question: "What is the key innovation of the Transformer architecture?",
+                options: ["Convolutional layers", "Recurrent connections", "Self-attention mechanism", "Pooling layers"],
+                correct: 2,
+                explanation: "The Transformer's key innovation is the self-attention mechanism, which allows it to process sequences in parallel and capture long-range dependencies."
+            },
+{
+    "question": "What is the primary goal of supervised learning?",
+    "options": ["Clustering data points", "Learning from labeled data", "Reducing dimensionality", "Generating new data"],
+    "correct": 1,
+    "explanation": "Supervised learning aims to learn a mapping from inputs to outputs using labeled training data."
+  },
+  {
+    "question": "Which algorithm is commonly used for linear regression?",
+    "options": ["K-means", "Decision Tree", "Gradient Descent", "DBSCAN"],
+    "correct": 2,
+    "explanation": "Gradient descent is the optimization algorithm commonly used to minimize the cost function in linear regression."
+  },
+  {
+    "question": "What does overfitting mean in machine learning?",
+    "options": ["Model performs well on training and test data", "Model performs poorly on both datasets", "Model performs well on training but poorly on test data", "Model has too few parameters"],
+    "correct": 2,
+    "explanation": "Overfitting occurs when a model learns the training data too well, including noise, leading to poor generalization on unseen data."
+  },
+  {
+    "question": "What is the purpose of cross-validation?",
+    "options": ["To increase training speed", "To assess model performance and generalization", "To reduce model complexity", "To generate more data"],
+    "correct": 1,
+    "explanation": "Cross-validation helps evaluate how well a model will generalize to unseen data by testing it on multiple train-validation splits."
+  },
+  {
+    "question": "Which metric is appropriate for imbalanced classification problems?",
+    "options": ["Accuracy", "F1-score", "Mean Squared Error", "R-squared"],
+    "correct": 1,
+    "explanation": "F1-score balances precision and recall, making it more suitable for imbalanced datasets than accuracy."
+  },
+  {
+    "question": "What is the bias-variance tradeoff?",
+    "options": ["Choosing between different algorithms", "Balancing model complexity and generalization", "Selecting features vs. samples", "Training time vs. accuracy"],
+    "correct": 1,
+    "explanation": "The bias-variance tradeoff involves balancing underfitting (high bias) and overfitting (high variance) to achieve optimal generalization."
+  },
+  {
+    "question": "What is the main purpose of regularization?",
+    "options": ["Increase model complexity", "Prevent overfitting", "Speed up training", "Improve accuracy on training data"],
+    "correct": 1,
+    "explanation": "Regularization techniques like L1 and L2 add penalty terms to prevent overfitting by constraining model parameters."
+  },
+  {
+    "question": "Which activation function is most commonly used in hidden layers of deep networks?",
+    "options": ["Sigmoid", "Tanh", "ReLU", "Linear"],
+    "correct": 2,
+    "explanation": "ReLU (Rectified Linear Unit) is widely used because it helps mitigate the vanishing gradient problem and is computationally efficient."
+  },
+  {
+    "question": "What is backpropagation?",
+    "options": ["Forward pass through the network", "Algorithm for computing gradients", "Method for initializing weights", "Technique for data preprocessing"],
+    "correct": 1,
+    "explanation": "Backpropagation is the algorithm used to compute gradients of the loss function with respect to network parameters for training."
+  },
+  {
+    "question": "What is the vanishing gradient problem?",
+    "options": ["Gradients become too large", "Gradients become very small in deep networks", "Loss function doesn't converge", "Training data is insufficient"],
+    "correct": 1,
+    "explanation": "The vanishing gradient problem occurs when gradients become exponentially small in deep networks, making it difficult to train early layers."
+  },
+  {
+    "question": "What is the key innovation of the Transformer architecture?",
+    "options": ["Convolutional layers", "Recurrent connections", "Self-attention mechanism", "Pooling layers"],
+    "correct": 2,
+    "explanation": "The Transformer's key innovation is the self-attention mechanism, which allows it to process sequences in parallel and capture long-range dependencies."
+  },
+  {
+    "question": "What is dropout in neural networks?",
+    "options": ["Removing entire layers", "Randomly setting some neurons to zero during training", "Reducing learning rate", "Early stopping technique"],
+    "correct": 1,
+    "explanation": "Dropout randomly sets a fraction of neurons to zero during training to prevent overfitting and improve generalization."
+  },
+  {
+    "question": "What is batch normalization?",
+    "options": ["Normalizing input data", "Normalizing layer inputs during training", "Reducing batch size", "Shuffling training examples"],
+    "correct": 1,
+    "explanation": "Batch normalization normalizes inputs to each layer, stabilizing training and allowing higher learning rates."
+  },
+  {
+    "question": "What is the purpose of an encoder-decoder architecture?",
+    "options": ["Classification tasks", "Sequence-to-sequence tasks", "Clustering", "Dimensionality reduction"],
+    "correct": 1,
+    "explanation": "Encoder-decoder architectures are designed for sequence-to-sequence tasks like machine translation and text summarization."
+  },
+  {
+    "question": "What is transfer learning?",
+    "options": ["Training multiple models simultaneously", "Using pre-trained models for new tasks", "Transferring data between datasets", "Moving models between devices"],
+    "correct": 1,
+    "explanation": "Transfer learning involves using knowledge from pre-trained models on related tasks to improve performance on new tasks."
+  },
+  {
+    "question": "What is the main advantage of CNNs for image processing?",
+    "options": ["They are faster to train", "They capture spatial hierarchies", "They require less data", "They have fewer parameters"],
+    "correct": 1,
+    "explanation": "CNNs excel at capturing spatial hierarchies and local patterns in images through convolutional and pooling operations."
+  },
+  {
+    "question": "What is the purpose of pooling layers in CNNs?",
+    "options": ["Increase resolution", "Reduce spatial dimensions", "Add non-linearity", "Normalize activations"],
+    "correct": 1,
+    "explanation": "Pooling layers reduce spatial dimensions while retaining important information, making the network more computationally efficient."
+  },
+  {
+    "question": "What is a recurrent neural network (RNN)?",
+    "options": ["Network with cycles in architecture", "Network that processes sequences", "Network with recursive functions", "Network that repeats training"],
+    "correct": 1,
+    "explanation": "RNNs are designed to process sequential data by maintaining hidden states that capture information from previous time steps."
+  },
+  {
+    "question": "What problem do LSTMs solve compared to vanilla RNNs?",
+    "options": ["Computational efficiency", "Long-term dependencies", "Overfitting", "Feature extraction"],
+    "correct": 1,
+    "explanation": "LSTMs solve the vanishing gradient problem in RNNs, allowing them to capture long-term dependencies in sequences."
+  },
+  {
+    "question": "What is the main purpose of the attention mechanism?",
+    "options": ["Speed up training", "Focus on relevant parts of input", "Reduce model size", "Prevent overfitting"],
+    "correct": 1,
+    "explanation": "Attention mechanisms allow models to focus on different parts of the input when making predictions, improving performance on complex tasks."
+  },
+  {
+    "question": "What is unsupervised learning?",
+    "options": ["Learning without a teacher", "Learning from unlabeled data", "Learning without validation", "Learning without testing"],
+    "correct": 1,
+    "explanation": "Unsupervised learning finds patterns in data without labeled examples, including clustering and dimensionality reduction."
+  },
+  {
+    "question": "What is K-means clustering?",
+    "options": ["Classification algorithm", "Partitioning clustering algorithm", "Hierarchical clustering", "Density-based clustering"],
+    "correct": 1,
+    "explanation": "K-means is a partitioning algorithm that divides data into k clusters by minimizing within-cluster sum of squares."
+  },
+  {
+    "question": "What is Principal Component Analysis (PCA)?",
+    "options": ["Classification technique", "Dimensionality reduction technique", "Clustering method", "Regression algorithm"],
+    "correct": 1,
+    "explanation": "PCA reduces dimensionality by finding principal components that capture the maximum variance in the data."
+  },
+  {
+    "question": "What is the curse of dimensionality?",
+    "options": ["Too many features leading to poor performance", "Insufficient training data", "Model complexity issues", "Computational limitations"],
+    "correct": 0,
+    "explanation": "The curse of dimensionality refers to problems that arise when working with high-dimensional data, including sparsity and distance concentration."
+  },
+  {
+    "question": "What is ensemble learning?",
+    "options": ["Training one complex model", "Combining multiple models", "Learning multiple tasks", "Using multiple datasets"],
+    "correct": 1,
+    "explanation": "Ensemble learning combines predictions from multiple models to achieve better performance than individual models."
+  },
+  {
+    "question": "What is bagging in ensemble methods?",
+    "options": ["Bootstrap Aggregating", "Best Algorithm Grouping", "Balanced Gradient", "Batch Aggregation"],
+    "correct": 0,
+    "explanation": "Bagging (Bootstrap Aggregating) trains multiple models on different bootstrap samples of the training data and averages their predictions."
+  },
+  {
+    "question": "What is boosting in machine learning?",
+    "options": ["Increasing learning rate", "Sequential training of weak learners", "Adding more features", "Increasing model complexity"],
+    "correct": 1,
+    "explanation": "Boosting sequentially trains weak learners, with each subsequent model focusing on correcting the errors of previous models."
+  },
+  {
+    "question": "What is random forest?",
+    "options": ["Single decision tree", "Ensemble of decision trees", "Random sampling method", "Feature selection technique"],
+    "correct": 1,
+    "explanation": "Random Forest is an ensemble method that combines multiple decision trees trained on random subsets of data and features."
+  },
+  {
+    "question": "What is the main advantage of Support Vector Machines (SVM)?",
+    "options": ["Fast training", "Effective in high dimensions", "Interpretable results", "No hyperparameters"],
+    "correct": 1,
+    "explanation": "SVMs are effective in high-dimensional spaces and memory efficient, making them suitable for complex classification tasks."
+  },
+  {
+    "question": "What is the kernel trick in SVM?",
+    "options": ["Data preprocessing step", "Method to handle non-linear separability", "Feature selection technique", "Regularization method"],
+    "correct": 1,
+    "explanation": "The kernel trick allows SVMs to operate in high-dimensional feature spaces to handle non-linearly separable data."
+  },
+  {
+    "question": "What is gradient descent?",
+    "options": ["Feature selection method", "Optimization algorithm", "Activation function", "Loss function"],
+    "correct": 1,
+    "explanation": "Gradient descent is an optimization algorithm that iteratively adjusts parameters to minimize a loss function."
+  },
+  {
+    "question": "What is the difference between batch and stochastic gradient descent?",
+    "options": ["Batch uses all data, SGD uses one sample", "Batch is faster than SGD", "SGD is more accurate than batch", "No significant difference"],
+    "correct": 0,
+    "explanation": "Batch gradient descent uses the entire dataset for each update, while SGD uses one sample, making SGD faster but noisier."
+  },
+  {
+    "question": "What is a learning rate in gradient descent?",
+    "options": ["Speed of convergence", "Step size for parameter updates", "Number of iterations", "Batch size"],
+    "correct": 1,
+    "explanation": "Learning rate determines the step size for parameter updates in gradient descent, affecting convergence speed and stability."
+  },
+  {
+    "question": "What is early stopping?",
+    "options": ["Stopping training when loss increases", "Preventing overfitting by monitoring validation performance", "Reducing learning rate", "Limiting number of epochs"],
+    "correct": 1,
+    "explanation": "Early stopping prevents overfitting by stopping training when validation performance stops improving."
+  },
+  {
+    "question": "What is feature engineering?",
+    "options": ["Selecting important features", "Creating new features from existing ones", "Removing redundant features", "All of the above"],
+    "correct": 3,
+    "explanation": "Feature engineering encompasses all aspects of preparing and transforming features to improve model performance."
+  },
+  {
+    "question": "What is one-hot encoding?",
+    "options": ["Normalizing continuous variables", "Converting categorical variables to binary vectors", "Scaling features to [0,1]", "Removing outliers"],
+    "correct": 1,
+    "explanation": "One-hot encoding converts categorical variables into binary vectors where only one element is 1 and others are 0."
+  },
+  {
+    "question": "What is the purpose of data normalization?",
+    "options": ["Remove duplicates", "Scale features to similar ranges", "Handle missing values", "Reduce noise"],
+    "correct": 1,
+    "explanation": "Data normalization scales features to similar ranges, preventing features with larger scales from dominating the learning process."
+  },
+  {
+    "question": "What is stratified sampling?",
+    "options": ["Random sampling", "Sampling that preserves class proportions", "Sampling based on feature importance", "Systematic sampling"],
+    "correct": 1,
+    "explanation": "Stratified sampling maintains the proportion of different classes or groups in the sample, ensuring representative data splits."
+  },
+  {
+    "question": "What is the ROC curve?",
+    "options": ["Plot of precision vs recall", "Plot of true positive rate vs false positive rate", "Plot of accuracy vs threshold", "Plot of loss vs epochs"],
+    "correct": 1,
+    "explanation": "ROC curve plots true positive rate against false positive rate at various threshold settings for binary classification."
+  },
+  {
+    "question": "What does AUC represent in ROC analysis?",
+    "options": ["Accuracy Under Curve", "Area Under Curve", "Average Uniform Classification", "Adjusted Uniform Coefficient"],
+    "correct": 1,
+    "explanation": "AUC (Area Under Curve) measures the area under the ROC curve, indicating the model's ability to distinguish between classes."
+  },
+  {
+    "question": "What is precision in classification?",
+    "options": ["True positives / (True positives + False positives)", "True positives / (True positives + False negatives)", "True positives / Total predictions", "Correct predictions / Total predictions"],
+    "correct": 0,
+    "explanation": "Precision measures the proportion of predicted positive cases that are actually positive."
+  },
+  {
+    "question": "What is recall in classification?",
+    "options": ["True positives / (True positives + False positives)", "True positives / (True positives + False negatives)", "True negatives / Total negatives", "Correct predictions / Total predictions"],
+    "correct": 1,
+    "explanation": "Recall (sensitivity) measures the proportion of actual positive cases that are correctly identified."
+  },
+  {
+    "question": "What is the difference between L1 and L2 regularization?",
+    "options": ["L1 uses absolute values, L2 uses squared values", "L1 is stronger than L2", "L2 is faster than L1", "No significant difference"],
+    "correct": 0,
+    "explanation": "L1 regularization uses absolute values of parameters and can lead to sparse models, while L2 uses squared values and tends to shrink parameters evenly."
+  },
+  {
+    "question": "What is elastic net regularization?",
+    "options": ["Combination of L1 and L2", "Alternative to dropout", "Type of activation function", "Feature selection method"],
+    "correct": 0,
+    "explanation": "Elastic net combines L1 and L2 regularization, balancing feature selection and parameter shrinkage."
+  },
+  {
+    "question": "What is hyperparameter tuning?",
+    "options": ["Adjusting model parameters during training", "Optimizing parameters that control learning", "Feature selection process", "Data preprocessing step"],
+    "correct": 1,
+    "explanation": "Hyperparameter tuning involves finding optimal values for parameters that control the learning process, like learning rate and regularization strength."
+  },
+  {
+    "question": "What is grid search?",
+    "options": ["Feature selection method", "Systematic hyperparameter search", "Cross-validation technique", "Optimization algorithm"],
+    "correct": 1,
+    "explanation": "Grid search systematically evaluates hyperparameter combinations by testing all possible values in a predefined grid."
+  },
+  {
+    "question": "What is random search for hyperparameter tuning?",
+    "options": ["Randomly selecting features", "Randomly sampling hyperparameter combinations", "Random initialization", "Random data sampling"],
+    "correct": 1,
+    "explanation": "Random search samples hyperparameter combinations randomly, often more efficient than grid search for high-dimensional spaces."
+  },
+  {
+    "question": "What is Bayesian optimization?",
+    "options": ["Bayesian neural networks", "Probabilistic approach to hyperparameter tuning", "Bayesian inference method", "Classification algorithm"],
+    "correct": 1,
+    "explanation": "Bayesian optimization uses probabilistic models to intelligently search for optimal hyperparameters based on previous evaluations."
+  },
+  {
+    "question": "What is a confusion matrix?",
+    "options": ["Matrix of feature correlations", "Table showing prediction vs actual classifications", "Covariance matrix", "Weight matrix"],
+    "correct": 1,
+    "explanation": "A confusion matrix shows the performance of a classification model by displaying predicted vs actual class labels."
+  },
+  {
+    "question": "What is the No Free Lunch theorem?",
+    "options": ["All algorithms perform equally well", "No algorithm works best for all problems", "Free algorithms don't exist", "Lunch affects performance"],
+    "correct": 1,
+    "explanation": "The No Free Lunch theorem states that no single algorithm performs best across all possible problems."
+  },
+  {
+    "question": "What is feature selection?",
+    "options": ["Creating new features", "Choosing relevant features for modeling", "Normalizing features", "Encoding categorical features"],
+    "correct": 1,
+    "explanation": "Feature selection involves choosing the most relevant features for modeling to improve performance and reduce complexity."
+  },
+  {
+    "question": "What is mutual information in feature selection?",
+    "options": ["Correlation between features", "Measure of information shared between variables", "Feature importance score", "Distance metric"],
+    "correct": 1,
+    "explanation": "Mutual information measures the amount of information shared between two variables, useful for feature selection."
+  },
+  {
+    "question": "What is dimensionality reduction?",
+    "options": ["Reducing model complexity", "Reducing number of features", "Reducing training time", "Reducing data size"],
+    "correct": 1,
+    "explanation": "Dimensionality reduction techniques reduce the number of features while preserving important information."
+  },
+  {
+    "question": "What is t-SNE?",
+    "options": ["Classification algorithm", "Non-linear dimensionality reduction technique", "Clustering method", "Feature selection technique"],
+    "correct": 1,
+    "explanation": "t-SNE (t-distributed Stochastic Neighbor Embedding) is a non-linear dimensionality reduction technique for visualization."
+  },
+  {
+    "question": "What is the main difference between supervised and unsupervised learning?",
+    "options": ["Supervised uses more data", "Supervised uses labeled data", "Unsupervised is more accurate", "No significant difference"],
+    "correct": 1,
+    "explanation": "Supervised learning uses labeled data to learn input-output mappings, while unsupervised learning finds patterns in unlabeled data."
+  },
+  {
+    "question": "What is semi-supervised learning?",
+    "options": ["Partially trained models", "Using both labeled and unlabeled data", "Learning half the features", "Incomplete training process"],
+    "correct": 1,
+    "explanation": "Semi-supervised learning uses both labeled and unlabeled data, typically with a small amount of labeled data and large amount of unlabeled data."
+  },
+  {
+    "question": "What is reinforcement learning?",
+    "options": ["Learning from rewards and punishments", "Strengthening weak models", "Repeated training", "Learning with reinforced data"],
+    "correct": 0,
+    "explanation": "Reinforcement learning involves an agent learning to make decisions by receiving rewards or punishments for actions taken in an environment."
+  },
+  {
+    "question": "What is Q-learning?",
+    "options": ["Quality learning", "Quantum learning", "Model-free reinforcement learning algorithm", "Query-based learning"],
+    "correct": 2,
+    "explanation": "Q-learning is a model-free reinforcement learning algorithm that learns the quality of actions, telling an agent what action to take under what circumstances."
+  },
+  {
+    "question": "What is a Markov Decision Process (MDP)?",
+    "options": ["Decision tree variant", "Framework for reinforcement learning", "Markov chain for decisions", "Process for feature selection"],
+    "correct": 1,
+    "explanation": "MDP provides a mathematical framework for modeling decision-making in reinforcement learning where outcomes are partly random and partly under agent control."
+  },
+  {
+    "question": "What is deep reinforcement learning?",
+    "options": ["Very complex RL", "RL with deep neural networks", "RL with many layers", "Advanced RL techniques"],
+    "correct": 1,
+    "explanation": "Deep reinforcement learning combines deep neural networks with reinforcement learning to handle high-dimensional state and action spaces."
+  },
+  {
+    "question": "What is a Generative Adversarial Network (GAN)?",
+    "options": ["Two networks competing against each other", "Network for generation only", "Adversarial training method", "Generative model type"],
+    "correct": 0,
+    "explanation": "GANs consist of two neural networks (generator and discriminator) competing against each other to generate realistic data."
+  },
+  {
+    "question": "What is the generator in a GAN?",
+    "options": ["Network that creates fake data", "Network that validates data", "Network that discriminates data", "Network that processes data"],
+    "correct": 0,
+    "explanation": "The generator in a GAN creates fake data samples that are intended to fool the discriminator into thinking they are real."
+  },
+  {
+    "question": "What is the discriminator in a GAN?",
+    "options": ["Network that generates data", "Network that distinguishes real from fake data", "Network that processes input", "Network that optimizes loss"],
+    "correct": 1,
+    "explanation": "The discriminator in a GAN tries to distinguish between real data and fake data generated by the generator."
+  },
+  {
+    "question": "What is mode collapse in GANs?",
+    "options": ["Generator produces limited variety", "Discriminator fails completely", "Training becomes unstable", "Networks collapse structurally"],
+    "correct": 0,
+    "explanation": "Mode collapse occurs when the generator produces only a limited variety of samples, failing to capture the full diversity of the training data."
+  },
+  {
+    "question": "What is a Variational Autoencoder (VAE)?",
+    "options": ["Type of autoencoder with variational inference", "Variable autoencoder", "Validation autoencoder", "Vector autoencoder"],
+    "correct": 0,
+    "explanation": "VAEs are generative models that learn to encode data into a latent space and decode it back, using variational inference for probabilistic generation."
+  },
+  {
+    "question": "What is the reparameterization trick in VAEs?",
+    "options": ["Changing parameters during training", "Method to enable backpropagation through sampling", "Regularization technique", "Parameter initialization method"],
+    "correct": 1,
+    "explanation": "The reparameterization trick allows gradients to flow through stochastic sampling operations in VAEs by expressing random samples as deterministic functions."
+  },
+  {
+    "question": "What is the KL divergence in VAEs?",
+    "options": ["Reconstruction loss", "Regularization term measuring distribution difference", "Activation function", "Optimization method"],
+    "correct": 1,
+    "explanation": "KL divergence in VAEs measures how much the learned latent distribution differs from a prior distribution, acting as a regularization term."
+  },
+  {
+    "question": "What is an autoencoder?",
+    "options": ["Self-encoding network", "Network that learns compressed representations", "Automatic encoder", "Encoding algorithm"],
+    "correct": 1,
+    "explanation": "An autoencoder is a neural network that learns to compress data into a lower-dimensional representation and then reconstruct the original data."
+  },
+  {
+    "question": "What is the bottleneck layer in an autoencoder?",
+    "options": ["Slowest layer", "Narrowest layer with compressed representation", "Error-prone layer", "Final layer"],
+    "correct": 1,
+    "explanation": "The bottleneck layer is the narrowest layer in an autoencoder that contains the compressed representation of the input data."
+  },
+  {
+    "question": "What is a denoising autoencoder?",
+    "options": ["Autoencoder for audio", "Autoencoder trained on corrupted inputs", "Noise-free autoencoder", "High-quality autoencoder"],
+    "correct": 1,
+    "explanation": "A denoising autoencoder is trained to reconstruct clean data from corrupted inputs, learning robust representations."
+  },
+  {
+    "question": "What is the purpose of word embeddings?",
+    "options": ["Embedding words in text", "Dense vector representation of words", "Word frequency counting", "Text preprocessing"],
+    "correct": 1,
+    "explanation": "Word embeddings represent words as dense vectors in a continuous space where semantically similar words are close to each other."
+  },
+  {
+    "question": "What is Word2Vec?",
+    "options": ["Word to vector conversion", "Algorithm for learning word embeddings", "Text preprocessing tool", "Vocabulary builder"],
+    "correct": 1,
+    "explanation": "Word2Vec is a neural network-based algorithm that learns word embeddings by predicting context words or target words."
+  },
+  {
+    "question": "What is the difference between CBOW and Skip-gram in Word2Vec?",
+    "options": ["CBOW predicts target from context, Skip-gram predicts context from target", "CBOW is faster than Skip-gram", "Skip-gram is more accurate", "No significant difference"],
+    "correct": 0,
+    "explanation": "CBOW (Continuous Bag of Words) predicts a target word from context words, while Skip-gram predicts context words from a target word."
+  },
+  {
+    "question": "What is GloVe?",
+    "options": ["Global Vectors for word representation", "Google's word embeddings", "Gradient-based embeddings", "Generalized vectors"],
+    "correct": 0,
+    "explanation": "GloVe (Global Vectors) learns word embeddings by factorizing global word-word co-occurrence statistics."
+  },
+  {
+    "question": "What is BERT?",
+    "options": ["Basic Encoding Representation Transformer", "Bidirectional Encoder Representations from Transformers", "Binary Encoded Text", "Balanced Embedding Technique"],
+    "correct": 1,
+    "explanation": "BERT is a bidirectional transformer model that learns contextualized word representations by training on masked language modeling and next sentence prediction."
+  },
+  {
+    "question": "What is the main innovation of BERT compared to previous models?",
+    "options": ["Larger model size", "Bidirectional context", "Faster training", "Better optimization"],
+    "correct": 1,
+    "explanation": "BERT's main innovation is its bidirectional training, allowing it to understand context from both left and right sides of a word simultaneously."
+  },
+  {
+    "question": "What is GPT?",
+    "options": ["General Purpose Transformer", "Generative Pre-trained Transformer", "Global Pattern Transformer", "Gradient Processing Transformer"],
+    "correct": 1,
+    "explanation": "GPT (Generative Pre-trained Transformer) is an autoregressive language model that generates text by predicting the next word in a sequence."
+  },
+  {
+    "question": "What is the difference between BERT and GPT?",
+    "options": ["BERT is bidirectional, GPT is unidirectional", "BERT is larger than GPT", "GPT is faster than BERT", "No significant difference"],
+    "correct": 0,
+    "explanation": "BERT uses bidirectional context for understanding, while GPT is autoregressive and generates text in a left-to-right manner."
+  },
+  {
+    "question": "What is fine-tuning in transfer learning?",
+    "options": ["Adjusting hyperparameters", "Training pre-trained models on specific tasks", "Improving model accuracy", "Reducing model size"],
+    "correct": 1,
+    "explanation": "Fine-tuning involves training a pre-trained model on a specific downstream task, typically with a smaller learning rate to adapt the learned features."
+  },
+  {
+    "question": "What is few-shot learning?",
+    "options": ["Learning with few epochs", "Learning with very few examples", "Learning few features", "Fast learning method"],
+    "correct": 1,
+    "explanation": "Few-shot learning enables models to learn new tasks from only a few training examples, often using meta-learning or transfer learning techniques."
+  },
+  {
+    "question": "What is zero-shot learning?",
+    "options": ["Learning without training", "Performing tasks without specific training examples", "Learning in zero time", "No-parameter learning"],
+    "correct": 1,
+    "explanation": "Zero-shot learning allows models to perform tasks they haven't been explicitly trained on, often using semantic relationships or auxiliary information."
+  },
+  {
+    "question": "What is meta-learning?",
+    "options": ["Learning about learning", "Learning to learn from few examples", "Metadata learning", "Multiple learning algorithms"],
+    "correct": 1,
+    "explanation": "Meta-learning, or 'learning to learn,' trains models to quickly adapt to new tasks with minimal data by learning general learning strategies."
+  },
+  {
+    "question": "What is curriculum learning?",
+    "options": ["Learning from curriculum", "Training on progressively difficult examples", "Educational ML", "Structured learning"],
+    "correct": 1,
+    "explanation": "Curriculum learning trains models by gradually increasing the difficulty of training examples, similar to how humans learn."
+  },
+  {
+    "question": "What is adversarial training?",
+    "options": ["Training GANs", "Training with adversarial examples", "Competitive training", "Training adversaries"],
+    "correct": 1,
+    "explanation": "Adversarial training improves model robustness by training on adversarial examples - inputs deliberately designed to fool the model."
+  },
+  {
+    "question": "What are adversarial examples?",
+    "options": ["Examples from adversaries", "Inputs designed to fool models", "Difficult training examples", "Competitive examples"],
+    "correct": 1,
+    "explanation": "Adversarial examples are inputs with small, often imperceptible perturbations that cause models to make incorrect predictions."
+  },
+  {
+    "question": "What is federated learning?",
+    "options": ["Federal government ML", "Distributed learning across multiple devices", "Centralized learning", "Federated data systems"],
+    "correct": 1,
+    "explanation": "Federated learning trains models across decentralized devices while keeping data localized, preserving privacy and reducing communication costs."
+  },
+  {
+    "question": "What is continual learning?",
+    "options": ["Continuous training", "Learning new tasks without forgetting old ones", "Always-on learning", "Perpetual learning"],
+    "correct": 1,
+    "explanation": "Continual learning aims to learn new tasks sequentially while retaining knowledge of previously learned tasks, addressing catastrophic forgetting."
+  },
+            {
+                question: "What is the purpose of positional encoding in Transformers?",
+                options: ["Add sequence order information", "Reduce computation", "Prevent overfitting", "Initialize weights"],
+                correct: 0,
+                explanation: "Positional encoding adds information about the position of tokens in a sequence, since Transformers don't have inherent sequence order awareness."
+            },
+            {
+                question: "What is the main advantage of deep learning over traditional machine learning?",
+                options: ["Always faster", "Automatic feature learning", "Less data required", "Simpler models"],
+                correct: 1,
+                explanation: "Deep learning's main advantage is automatic feature learning from raw data, eliminating the need for manual feature engineering."
+            },
+            {
+                question: "What is model capacity in neural networks?",
+                options: ["Memory usage", "Ability to fit complex functions", "Training speed", "Number of layers"],
+                correct: 1,
+                explanation: "Model capacity refers to the model's ability to fit complex functions, generally increasing with the number of parameters."
+            },
+            {
+                question: "What is the purpose of weight decay (L2 regularization)?",
+                options: ["Speed up training", "Prevent overfitting by penalizing large weights", "Initialize weights", "Compute gradients"],
+                correct: 1,
+                explanation: "Weight decay adds a penalty term proportional to the sum of squared weights, encouraging smaller weights and preventing overfitting."
+            },
+{
+        question: "What is the key innovation of the Transformer architecture?",
+        options: ["Convolutional layers", "Recurrent connections", "Self-attention mechanism", "Pooling layers"],
+        correct: 2,
+        explanation: "The Transformer's key innovation is the self-attention mechanism, which allows it to process sequences in parallel and capture long-range dependencies."
+    },
+    {
+        question: "What is the vanishing gradient problem?",
+        options: ["Gradients become too large", "Gradients become too small", "Gradients become negative", "Gradients become zero"],
+        correct: 1,
+        explanation: "The vanishing gradient problem occurs when gradients become exponentially small as they propagate backward through deep networks, making it difficult to train early layers."
+    },
+    {
+        question: "Which activation function is most commonly used in modern deep networks?",
+        options: ["Sigmoid", "Tanh", "ReLU", "Linear"],
+        correct: 2,
+        explanation: "ReLU (Rectified Linear Unit) is widely used because it helps mitigate the vanishing gradient problem and is computationally efficient."
+    },
+    {
+        question: "What is the purpose of batch normalization?",
+        options: ["Reduce overfitting", "Stabilize training", "Increase model capacity", "Reduce computation"],
+        correct: 1,
+        explanation: "Batch normalization normalizes inputs to each layer, stabilizing training by reducing internal covariate shift."
+    },
+    {
+        question: "In a CNN, what does a convolution operation compute?",
+        options: ["Element-wise multiplication", "Matrix multiplication", "Cross-correlation", "Dot product"],
+        correct: 2,
+        explanation: "A convolution operation computes the cross-correlation between the input and a filter kernel, detecting local features."
+    },
+    {
+        question: "What is the main advantage of using dropout during training?",
+        options: ["Faster convergence", "Reduced overfitting", "Better gradients", "Lower memory usage"],
+        correct: 1,
+        explanation: "Dropout randomly sets some neurons to zero during training, preventing co-adaptation and reducing overfitting."
+    },
+    {
+        question: "Which optimizer is known for adaptive learning rates?",
+        options: ["SGD", "Adam", "Momentum", "Adagrad"],
+        correct: 1,
+        explanation: "Adam combines adaptive learning rates with momentum, adjusting learning rates for each parameter individually."
+    },
+    {
+        question: "What is the purpose of pooling layers in CNNs?",
+        options: ["Increase receptive field", "Reduce spatial dimensions", "Add non-linearity", "Normalize inputs"],
+        correct: 1,
+        explanation: "Pooling layers reduce spatial dimensions while retaining important features, making the network more computationally efficient."
+    },
+    {
+        question: "What is backpropagation?",
+        options: ["Forward pass algorithm", "Gradient computation algorithm", "Activation function", "Loss function"],
+        correct: 1,
+        explanation: "Backpropagation is the algorithm used to compute gradients of the loss function with respect to network parameters."
+    },
+    {
+        question: "Which layer type is primarily used in RNNs?",
+        options: ["Convolutional", "Recurrent", "Dense", "Pooling"],
+        correct: 1,
+        explanation: "RNNs use recurrent layers that maintain hidden states, allowing them to process sequential data."
+    },
+    {
+        question: "What is the main problem with standard RNNs?",
+        options: ["Too many parameters", "Vanishing gradients", "Slow training", "High memory usage"],
+        correct: 1,
+        explanation: "Standard RNNs suffer from vanishing gradients, making it difficult to learn long-term dependencies."
+    },
+    {
+        question: "Which architecture was designed to solve the vanishing gradient problem in RNNs?",
+        options: ["CNN", "LSTM", "GAN", "Autoencoder"],
+        correct: 1,
+        explanation: "LSTM (Long Short-Term Memory) uses gating mechanisms to control information flow and mitigate vanishing gradients."
+    },
+    {
+        question: "What is the role of the forget gate in LSTM?",
+        options: ["Add new information", "Remove irrelevant information", "Update cell state", "Generate output"],
+        correct: 1,
+        explanation: "The forget gate decides what information to discard from the cell state, allowing the network to forget irrelevant past information."
+    },
+    {
+        question: "In deep learning, what is transfer learning?",
+        options: ["Training from scratch", "Using pre-trained models", "Data augmentation", "Model compression"],
+        correct: 1,
+        explanation: "Transfer learning involves using a pre-trained model as a starting point and fine-tuning it for a specific task."
+    },
+    {
+        question: "What is the purpose of the softmax function?",
+        options: ["Normalize inputs", "Convert to probabilities", "Add non-linearity", "Reduce overfitting"],
+        correct: 1,
+        explanation: "Softmax converts raw scores into probabilities that sum to 1, commonly used in classification tasks."
+    },
+    {
+        question: "Which loss function is typically used for binary classification?",
+        options: ["Mean Squared Error", "Cross-entropy", "Hinge loss", "Huber loss"],
+        correct: 1,
+        explanation: "Binary cross-entropy loss is specifically designed for binary classification problems."
+    },
+    {
+        question: "What is the main advantage of residual connections in ResNet?",
+        options: ["Reduced parameters", "Faster training", "Gradient flow", "Lower memory"],
+        correct: 2,
+        explanation: "Residual connections allow gradients to flow directly through skip connections, enabling training of very deep networks."
+    },
+    {
+        question: "In GANs, what is the role of the discriminator?",
+        options: ["Generate fake data", "Distinguish real from fake", "Optimize generator", "Preprocess input"],
+        correct: 1,
+        explanation: "The discriminator tries to distinguish between real and fake data generated by the generator."
+    },
+    {
+        question: "What is the purpose of data augmentation?",
+        options: ["Reduce dataset size", "Increase dataset diversity", "Speed up training", "Reduce overfitting"],
+        correct: 1,
+        explanation: "Data augmentation artificially increases dataset diversity by applying transformations, helping reduce overfitting."
+    },
+    {
+        question: "Which technique is used to prevent internal covariate shift?",
+        options: ["Dropout", "Batch normalization", "L2 regularization", "Early stopping"],
+        correct: 1,
+        explanation: "Batch normalization normalizes layer inputs to reduce internal covariate shift during training."
+    },
+    {
+        question: "What is the key difference between CNN and RNN?",
+        options: ["Parameter sharing", "Sequence processing", "Spatial processing", "All of the above"],
+        correct: 3,
+        explanation: "CNNs excel at spatial processing while RNNs are designed for sequential data, both use parameter sharing differently."
+    },
+    {
+        question: "Which activation function can cause the dying ReLU problem?",
+        options: ["Sigmoid", "Tanh", "ReLU", "Swish"],
+        correct: 2,
+        explanation: "ReLU can cause dying ReLU problem where neurons become inactive and stop learning if they always output zero."
+    },
+    {
+        question: "What is gradient clipping used for?",
+        options: ["Prevent exploding gradients", "Accelerate training", "Reduce memory usage", "Improve accuracy"],
+        correct: 0,
+        explanation: "Gradient clipping limits the magnitude of gradients to prevent the exploding gradient problem."
+    },
+    {
+        question: "In attention mechanisms, what are queries, keys, and values?",
+        options: ["Different loss functions", "Optimization parameters", "Attention components", "Layer types"],
+        correct: 2,
+        explanation: "Queries, keys, and values are the three main components of attention mechanisms used to compute attention weights."
+    },
+    {
+        question: "What is the main purpose of the encoder in an autoencoder?",
+        options: ["Decode features", "Compress input", "Generate output", "Classify data"],
+        correct: 1,
+        explanation: "The encoder compresses the input into a lower-dimensional latent representation."
+    },
+    {
+        question: "Which regularization technique randomly sets weights to zero?",
+        options: ["L1 regularization", "L2 regularization", "Dropout", "Early stopping"],
+        correct: 2,
+        explanation: "Dropout randomly sets a fraction of neurons to zero during training to prevent overfitting."
+    },
+    {
+        question: "What is the purpose of the decoder in a Transformer?",
+        options: ["Encode input", "Generate output", "Compute attention", "Normalize data"],
+        correct: 1,
+        explanation: "The decoder generates the output sequence using the encoded input and previously generated tokens."
+    },
+    {
+        question: "Which technique is used to handle variable-length sequences in RNNs?",
+        options: ["Padding", "Masking", "Truncation", "All of the above"],
+        correct: 3,
+        explanation: "Variable-length sequences can be handled using padding, masking, or truncation techniques."
+    },
+    {
+        question: "What is the vanishing gradient problem primarily caused by?",
+        options: ["Large learning rates", "Chain rule multiplication", "Too many layers", "Activation saturation"],
+        correct: 1,
+        explanation: "The chain rule causes gradients to be multiplied through many layers, often resulting in exponentially small values."
+    },
+    {
+        question: "Which normalization technique is applied across the batch dimension?",
+        options: ["Layer normalization", "Batch normalization", "Instance normalization", "Group normalization"],
+        correct: 1,
+        explanation: "Batch normalization normalizes across the batch dimension, computing statistics over the entire batch."
+    },
+    {
+        question: "What is the main advantage of using pre-trained word embeddings?",
+        options: ["Faster training", "Better representations", "Reduced overfitting", "All of the above"],
+        correct: 3,
+        explanation: "Pre-trained embeddings provide better word representations, faster training, and can reduce overfitting."
+    },
+    {
+        question: "In deep learning, what is fine-tuning?",
+        options: ["Training from scratch", "Hyperparameter optimization", "Adapting pre-trained models", "Data preprocessing"],
+        correct: 2,
+        explanation: "Fine-tuning involves adapting a pre-trained model to a new task by training with a smaller learning rate."
+    },
+    {
+        question: "Which loss function is commonly used for multi-class classification?",
+        options: ["Binary cross-entropy", "Categorical cross-entropy", "Mean squared error", "Hinge loss"],
+        correct: 1,
+        explanation: "Categorical cross-entropy is used for multi-class classification where each sample belongs to exactly one class."
+    },
+    {
+        question: "What is the purpose of the learning rate in optimization?",
+        options: ["Control batch size", "Control step size", "Control epochs", "Control momentum"],
+        correct: 1,
+        explanation: "Learning rate controls the step size in parameter updates during gradient descent optimization."
+    },
+    {
+        question: "Which technique is used to reduce the internal covariate shift?",
+        options: ["Dropout", "Batch normalization", "L1 regularization", "Data augmentation"],
+        correct: 1,
+        explanation: "Batch normalization reduces internal covariate shift by normalizing layer inputs."
+    },
+    {
+        question: "What is the main characteristic of a fully connected layer?",
+        options: ["Spatial locality", "Parameter sharing", "Every neuron connects to all neurons in previous layer", "Recurrent connections"],
+        correct: 2,
+        explanation: "In fully connected layers, every neuron is connected to all neurons in the previous layer."
+    },
+    {
+        question: "Which optimizer combines momentum with adaptive learning rates?",
+        options: ["SGD", "Adam", "RMSprop", "Adagrad"],
+        correct: 1,
+        explanation: "Adam optimizer combines momentum with adaptive learning rates for each parameter."
+    },
+    {
+        question: "What is the purpose of max pooling?",
+        options: ["Increase feature maps", "Reduce spatial dimensions", "Add non-linearity", "Normalize features"],
+        correct: 1,
+        explanation: "Max pooling reduces spatial dimensions by taking the maximum value in each pooling window."
+    },
+    {
+        question: "In CNNs, what does the stride parameter control?",
+        options: ["Filter size", "Step size of convolution", "Number of filters", "Padding amount"],
+        correct: 1,
+        explanation: "Stride controls how many pixels the filter moves at each step during convolution."
+    },
+    {
+        question: "What is the main benefit of using deeper networks?",
+        options: ["Faster training", "More complex representations", "Less overfitting", "Lower memory usage"],
+        correct: 1,
+        explanation: "Deeper networks can learn more complex and hierarchical representations of data."
+    },
+    {
+        question: "Which technique is used to initialize weights in deep networks?",
+        options: ["Zero initialization", "Random initialization", "Xavier/Glorot initialization", "Constant initialization"],
+        correct: 2,
+        explanation: "Xavier/Glorot initialization helps maintain variance across layers and prevents vanishing/exploding gradients."
+    },
+    {
+        question: "What is the purpose of the bias term in neural networks?",
+        options: ["Add non-linearity", "Shift activation function", "Reduce overfitting", "Increase capacity"],
+        correct: 1,
+        explanation: "Bias terms allow the activation function to be shifted, providing more flexibility in learning."
+    },
+    {
+        question: "Which architecture is best suited for image classification?",
+        options: ["RNN", "CNN", "LSTM", "GAN"],
+        correct: 1,
+        explanation: "CNNs are specifically designed for image data with their spatial feature extraction capabilities."
+    },
+    {
+        question: "What is the role of the generator in GANs?",
+        options: ["Classify real images", "Generate fake data", "Optimize discriminator", "Preprocess input"],
+        correct: 1,
+        explanation: "The generator creates fake data samples to fool the discriminator in adversarial training."
+    },
+    {
+        question: "Which regularization technique adds a penalty term to the loss function?",
+        options: ["Dropout", "Early stopping", "L2 regularization", "Batch normalization"],
+        correct: 2,
+        explanation: "L2 regularization adds a penalty term proportional to the sum of squared weights to the loss function."
+    },
+    {
+        question: "What is the main advantage of using attention mechanisms?",
+        options: ["Faster training", "Parallel processing", "Long-range dependencies", "Reduced parameters"],
+        correct: 2,
+        explanation: "Attention mechanisms can capture long-range dependencies without the sequential processing limitations of RNNs."
+    },
+    {
+        question: "In deep learning, what is curriculum learning?",
+        options: ["Learning multiple tasks", "Learning from easy to hard examples", "Continuous learning", "Meta-learning"],
+        correct: 1,
+        explanation: "Curriculum learning involves training models by gradually increasing the difficulty of training examples."
+    },
+    {
+        question: "Which activation function is bounded between 0 and 1?",
+        options: ["ReLU", "Tanh", "Sigmoid", "Leaky ReLU"],
+        correct: 2,
+        explanation: "Sigmoid function outputs values between 0 and 1, making it suitable for binary classification."
+    },
+    {
+        question: "What is the purpose of early stopping?",
+        options: ["Speed up training", "Prevent overfitting", "Reduce memory usage", "Improve gradients"],
+        correct: 1,
+        explanation: "Early stopping prevents overfitting by stopping training when validation performance stops improving."
+    },
+    {
+        question: "Which type of layer is used to reduce the number of parameters in CNNs?",
+        options: ["Convolutional", "Pooling", "Dense", "Normalization"],
+        correct: 1,
+        explanation: "Pooling layers reduce spatial dimensions and the number of parameters while retaining important features."
+    },
+    {
+        question: "What is the main challenge in training very deep networks?",
+        options: ["Memory limitations", "Gradient problems", "Slow convergence", "All of the above"],
+        correct: 3,
+        explanation: "Very deep networks face multiple challenges including gradient problems, memory limitations, and slow convergence."
+    },
+    {
+        question: "Which technique is used to handle class imbalance in deep learning?",
+        options: ["Data augmentation", "Weighted loss", "Oversampling", "All of the above"],
+        correct: 3,
+        explanation: "Class imbalance can be addressed through various techniques including weighted loss, oversampling, and data augmentation."
+    },
+    {
+        question: "What is the purpose of the attention mechanism in Transformers?",
+        options: ["Reduce computation", "Capture dependencies", "Add non-linearity", "Normalize inputs"],
+        correct: 1,
+        explanation: "Attention mechanisms in Transformers capture dependencies between different positions in the sequence."
+    },
+    {
+        question: "Which optimizer is known for its simplicity and effectiveness?",
+        options: ["Adam", "SGD with momentum", "RMSprop", "Adagrad"],
+        correct: 1,
+        explanation: "SGD with momentum is simple, effective, and often performs well across various deep learning tasks."
+    },
+    {
+        question: "What is the main difference between batch and mini-batch gradient descent?",
+        options: ["Batch size", "Learning rate", "Momentum", "Regularization"],
+        correct: 0,
+        explanation: "The main difference is the batch size used for computing gradients - full batch vs. smaller mini-batches."
+    },
+    {
+        question: "Which technique is used to prevent co-adaptation of neurons?",
+        options: ["Batch normalization", "Dropout", "L1 regularization", "Early stopping"],
+        correct: 1,
+        explanation: "Dropout prevents co-adaptation by randomly setting neurons to zero, forcing others to learn useful representations."
+    },
+    {
+        question: "What is the purpose of positional encoding in Transformers?",
+        options: ["Add position information", "Reduce computation", "Improve gradients", "Normalize inputs"],
+        correct: 0,
+        explanation: "Positional encoding adds position information to token embeddings since Transformers don't have inherent sequence order."
+    },
+    {
+        question: "Which loss function is used for regression problems?",
+        options: ["Cross-entropy", "Mean squared error", "Hinge loss", "Focal loss"],
+        correct: 1,
+        explanation: "Mean squared error is commonly used for regression problems to measure the difference between predicted and actual values."
+    },
+    {
+        question: "What is the main advantage of using convolutional layers?",
+        options: ["Parameter sharing", "Translation invariance", "Local connectivity", "All of the above"],
+        correct: 3,
+        explanation: "Convolutional layers provide parameter sharing, translation invariance, and local connectivity for efficient image processing."
+    },
+    {
+        question: "Which technique is used to handle gradient explosion?",
+        options: ["Gradient clipping", "Batch normalization", "Dropout", "Early stopping"],
+        correct: 0,
+        explanation: "Gradient clipping prevents gradient explosion by limiting the magnitude of gradients during backpropagation."
+    },
+    {
+        question: "What is the purpose of skip connections in ResNet?",
+        options: ["Reduce parameters", "Enable deeper networks", "Improve accuracy", "Speed up training"],
+        correct: 1,
+        explanation: "Skip connections allow gradients to flow directly, enabling the training of much deeper networks."
+    },
+    {
+        question: "Which activation function helps with the dying ReLU problem?",
+        options: ["Sigmoid", "Tanh", "Leaky ReLU", "Linear"],
+        correct: 2,
+        explanation: "Leaky ReLU allows small negative values, preventing neurons from becoming permanently inactive."
+    },
+    {
+        question: "What is the main characteristic of recurrent neural networks?",
+        options: ["Spatial processing", "Temporal processing", "Parameter sharing", "Attention mechanism"],
+        correct: 1,
+        explanation: "RNNs are designed for temporal/sequential processing, maintaining hidden states across time steps."
+    },
+    {
+        question: "Which technique is used to reduce overfitting in deep networks?",
+        options: ["Dropout", "L2 regularization", "Early stopping", "All of the above"],
+        correct: 3,
+        explanation: "Multiple regularization techniques including dropout, L2 regularization, and early stopping can reduce overfitting."
+    },
+    {
+        question: "What is the purpose of the softmax temperature parameter?",
+        options: ["Control learning rate", "Control probability distribution", "Control batch size", "Control momentum"],
+        correct: 1,
+        explanation: "Temperature parameter controls the sharpness of the probability distribution in softmax function."
+    },
+    {
+        question: "Which normalization technique is applied per sample?",
+        options: ["Batch normalization", "Layer normalization", "Instance normalization", "Group normalization"],
+        correct: 2,
+        explanation: "Instance normalization normalizes each sample independently, commonly used in style transfer."
+    },
+    {
+        question: "What is the main benefit of using pre-trained models?",
+        options: ["Faster training", "Better initialization", "Transfer learning", "All of the above"],
+        correct: 3,
+        explanation: "Pre-trained models provide better initialization, enable transfer learning, and often lead to faster training."
+    },
+    {
+        question: "Which architecture introduced the concept of attention?",
+        options: ["CNN", "RNN", "Transformer", "GAN"],
+        correct: 2,
+        explanation: "The Transformer architecture introduced and popularized the attention mechanism in deep learning."
+    },
+    {
+        question: "What is the purpose of the learning rate schedule?",
+        options: ["Adjust learning rate during training", "Control batch size", "Control momentum", "Control regularization"],
+        correct: 0,
+        explanation: "Learning rate schedules adjust the learning rate during training to improve convergence and final performance."
+    },
+    {
+        question: "Which technique is used to handle vanishing gradients in RNNs?",
+        options: ["LSTM", "GRU", "Attention", "All of the above"],
+        correct: 3,
+        explanation: "LSTM, GRU, and attention mechanisms all help address the vanishing gradient problem in sequential models."
+    },
+    {
+        question: "What is the main advantage of using batch normalization?",
+        options: ["Faster training", "Better generalization", "Gradient flow", "All of the above"],
+        correct: 3,
+        explanation: "Batch normalization provides faster training, better generalization, and improved gradient flow."
+    },
+    {
+        question: "Which loss function is robust to outliers?",
+        options: ["Mean squared error", "Mean absolute error", "Huber loss", "Cross-entropy"],
+        correct: 2,
+        explanation: "Huber loss combines the best of MSE and MAE, being robust to outliers while maintaining smoothness."
+    },
+    {
+        question: "What is the purpose of the embedding layer?",
+        options: ["Reduce dimensions", "Convert discrete to continuous", "Add non-linearity", "Normalize inputs"],
+        correct: 1,
+        explanation: "Embedding layers convert discrete tokens (like words) into dense continuous vector representations."
+    },
+    {
+        question: "Which technique is used to visualize learned features in CNNs?",
+        options: ["t-SNE", "Feature maps", "Gradient-based methods", "All of the above"],
+        correct: 3,
+        explanation: "Various techniques including t-SNE, feature map visualization, and gradient-based methods help visualize CNN features."
+    },
+    {
+        question: "What is the main difference between GRU and LSTM?",
+        options: ["Number of gates", "Complexity", "Performance", "All of the above"],
+        correct: 0,
+        explanation: "GRU has fewer gates (2) compared to LSTM (3), making it simpler while maintaining similar performance."
+    },
+    {
+        question: "Which optimizer adapts learning rates based on gradient history?",
+        options: ["SGD", "Adam", "Momentum", "All of the above"],
+        correct: 1,
+        explanation: "Adam adapts learning rates for each parameter based on first and second moments of gradient history."
+    },
+    {
+        question: "What is the purpose of data normalization?",
+        options: ["Reduce variance", "Improve convergence", "Prevent gradient problems", "All of the above"],
+        correct: 3,
+        explanation: "Data normalization helps reduce variance, improve convergence, and prevent gradient-related problems."
+    },
+    {
+        question: "Which technique is used to handle sequential data of different lengths?",
+        options: ["Padding", "Packing", "Masking", "All of the above"],
+        correct: 3,
+        explanation: "Padding, packing, and masking are all techniques used to handle variable-length sequences efficiently."
+    },
+    {
+        question: "What is the main advantage of using deeper networks?",
+        options: ["More parameters", "Better feature learning", "Slower training", "Higher memory usage"],
+        correct: 1,
+        explanation: "Deeper networks can learn more complex and hierarchical feature representations."
+    },
+    {
+        question: "Which activation function is used in the output layer for multi-class classification?",
+        options: ["ReLU", "Sigmoid", "Softmax", "Tanh"],
+        correct: 2,
+        explanation: "Softmax is used in the output layer for multi-class classification to produce probability distributions."
+    },
+    {
+        question: "What is the purpose of weight decay?",
+        options: ["Prevent overfitting", "Improve convergence", "Reduce model complexity", "All of the above"],
+        correct: 3,
+        explanation: "Weight decay (L2 regularization) prevents overfitting, improves convergence, and reduces model complexity."
+    },
+    {
+        question: "Which technique is used to improve training stability?",
+        options: ["Batch normalization", "Gradient clipping", "Learning rate scheduling", "All of the above"],
+        correct: 3,
+        explanation: "Multiple techniques including batch normalization, gradient clipping, and learning rate scheduling improve training stability."
+    },
+    {
+        question: "What is the main characteristic of autoencoders?",
+        options: ["Supervised learning", "Unsupervised learning", "Reinforcement learning", "Semi-supervised learning"],
+        correct: 1,
+        explanation: "Autoencoders are unsupervised learning models that learn to reconstruct their input."
+    },
+    {
+        question: "Which optimizer is known for its fast convergence?",
+        options: ["SGD", "Adam", "Adagrad", "RMSprop"],
+        correct: 1,
+        explanation: "Adam typically converges faster than other optimizers due to its adaptive learning rates and momentum."
+    },
+    {
+        question: "What is the purpose of the cell state in LSTM?",
+        options: ["Store short-term memory", "Store long-term memory", "Compute output", "Control gates"],
+        correct: 1,
+        explanation: "The cell state in LSTM stores long-term memory and flows through the network with minimal modifications."
+    },
+    {
+        question: "Which technique is used to prevent mode collapse in GANs?",
+        options: ["Batch normalization", "Spectral normalization", "Feature matching", "All of the above"],
+        correct: 3,
+        explanation: "Various techniques including spectral normalization, feature matching, and proper training strategies prevent mode collapse."
+    },
+    {
+        question: "What is the main advantage of using pre-trained embeddings?",
+        options: ["Semantic understanding", "Faster training", "Better generalization", "All of the above"],
+        correct: 3,
+        explanation: "Pre-trained embeddings provide semantic understanding, faster training, and better generalization."
+    },
+    {
+        question: "Which loss function is used for semantic segmentation?",
+        options: ["Cross-entropy", "Dice loss", "Focal loss", "All of the above"],
+        correct: 3,
+        explanation: "Semantic segmentation uses various loss functions including cross-entropy, Dice loss, and focal loss."
+    },
+    {
+        question: "What is the purpose of the discriminator loss in GANs?",
+        options: ["Improve generator", "Distinguish real from fake", "Reduce mode collapse", "Speed up training"],
+        correct: 1,
+        explanation: "The discriminator loss trains the discriminator to better distinguish between real and fake samples."
+    },
+    {
+        question: "Which technique is used to handle imbalanced datasets?",
+        options: ["Weighted sampling", "Focal loss", "SMOTE", "All of the above"],
+        correct: 3,
+        explanation: "Imbalanced datasets can be handled using weighted sampling, focal loss, SMOTE, and other techniques."
+    },
+    {
+        question: "What is the main benefit of using residual connections?",
+        options: ["Reduced parameters", "Better gradient flow", "Faster inference", "Lower memory"],
+        correct: 1,
+        explanation: "Residual connections improve gradient flow, enabling training of very deep networks."
+    },
+    {
+        question: "Which normalization technique is used in Transformers?",
+        options: ["Batch normalization", "Layer normalization", "Instance normalization", "Group normalization"],
+        correct: 1,
+        explanation: "Transformers typically use layer normalization, which normalizes across the feature dimension."
+    },
+    {
+        question: "What is the purpose of teacher forcing in sequence generation?",
+        options: ["Improve accuracy", "Speed up training", "Reduce exposure bias", "Stabilize training"],
+        correct: 1,
+        explanation: "Teacher forcing uses ground truth tokens during training to speed up convergence and stabilize training."
+    },
+    {
+        question: "Which technique is used to compress deep learning models?",
+        options: ["Pruning", "Quantization", "Knowledge distillation", "All of the above"],
+        correct: 3,
+        explanation: "Model compression uses techniques like pruning, quantization, and knowledge distillation to reduce model size."
+    },
+    {
+        question: "What is the main advantage of multi-head attention?",
+        options: ["Reduced computation", "Multiple representation subspaces", "Faster training", "Better gradients"],
+        correct: 1,
+        explanation: "Multi-head attention allows the model to attend to different representation subspaces simultaneously."
+    },
+    {
+        question: "Which activation function is used in LSTM gates?",
+        options: ["ReLU", "Sigmoid", "Tanh", "Softmax"],
+        correct: 1,
+        explanation: "LSTM gates use sigmoid activation to produce values between 0 and 1 for controlling information flow."
+    },
+    {
+        question: "What is the purpose of the warmup phase in learning rate scheduling?",
+        options: ["Prevent overfitting", "Stabilize training", "Improve convergence", "Reduce computation"],
+        correct: 1,
+        explanation: "Warmup phase gradually increases learning rate at the beginning to stabilize training, especially with large batch sizes."
+    },
+    {
+        question: "Which technique is used to handle catastrophic forgetting?",
+        options: ["Elastic weight consolidation", "Progressive networks", "Memory replay", "All of the above"],
+        correct: 3,
+        explanation: "Catastrophic forgetting can be addressed using EWC, progressive networks, memory replay, and other continual learning techniques."
+    },
+    {
+        question: "What is the main characteristic of dilated convolutions?",
+        options: ["Larger receptive field", "Fewer parameters", "Faster computation", "Better gradients"],
+        correct: 0,
+        explanation: "Dilated convolutions increase the receptive field without increasing parameters by introducing gaps in the kernel."
+    },
+    {
+        question: "Which optimizer is known for its robustness to hyperparameters?",
+        options: ["SGD", "Adam", "AdamW", "RMSprop"],
+        correct: 2,
+        explanation: "AdamW is known for being more robust to hyperparameter choices and often performs better than standard Adam."
+    }
+        ];
+
+        let currentQuestion = 0;
+        let score = 0;
+        let answered = false;
+        let selectedOption = -1;
+
+        function displayQuestion() {
+            const q = questions[currentQuestion];
+            document.getElementById('question').textContent = q.question;
+            document.getElementById('questionCounter').textContent = `Question ${currentQuestion + 1} of ${questions.length}`;
+            
+            const optionsContainer = document.getElementById('options');
+            optionsContainer.innerHTML = '';
+            
+            q.options.forEach((option, index) => {
+                const optionElement = document.createElement('div');
+                optionElement.className = 'option';
+                optionElement.textContent = option;
+                optionElement.onclick = () => selectOption(index);
+                optionsContainer.appendChild(optionElement);
+            });
+            
+            document.getElementById('feedback').style.display = 'none';
+            document.getElementById('nextBtn').disabled = true;
+            answered = false;
+            selectedOption = -1;
+            
+            // Update progress bar
+            const progress = ((currentQuestion + 1) / questions.length) * 100;
+            document.getElementById('progressBar').style.width = progress + '%';
+        }
+
+        function selectOption(index) {
+            if (answered) return;
+            
+            const options = document.querySelectorAll('.option');
+            options.forEach(opt => opt.classList.remove('selected'));
+            options[index].classList.add('selected');
+            selectedOption = index;
+            document.getElementById('nextBtn').disabled = false;
+        }
+
+        function nextQuestion() {
+            if (!answered && selectedOption !== -1) {
+                checkAnswer();
+                return;
+            }
+            
+            if (currentQuestion < questions.length - 1) {
+                currentQuestion++;
+                displayQuestion();
+            } else {
+                showResults();
+            }
+        }
+
+        function checkAnswer() {
+            if (selectedOption === -1) return;
+            
+            answered = true;
+            const q = questions[currentQuestion];
+            const options = document.querySelectorAll('.option');
+            const feedback = document.getElementById('feedback');
+            const nextBtn = document.getElementById('nextBtn');
+            
+            // Disable all options
+            options.forEach(opt => opt.style.pointerEvents = 'none');
+            
+            // Show correct answer
+            options[q.correct].classList.add('correct');
+            
+            if (selectedOption === q.correct) {
+                score++;
+                feedback.className = 'feedback correct';
+                feedback.innerHTML = `<strong>Correct!</strong> ${q.explanation}`;
+            } else {
+                options[selectedOption].classList.add('incorrect');
+                feedback.className = 'feedback incorrect';
+                feedback.innerHTML = `<strong>Incorrect.</strong> ${q.explanation}`;
+            }
+            
+            feedback.style.display = 'block';
+            
+            if (currentQuestion === questions.length - 1) {
+                nextBtn.textContent = 'View Results';
+            } else {
+                nextBtn.textContent = 'Next Question';
+            }
+        }
+
+        function showResults() {
+            document.getElementById('quizContent').style.display = 'none';
+            document.getElementById('results').style.display = 'block';
+            
+            const percentage = Math.round((score / questions.length) * 100);
+            document.getElementById('finalScore').textContent = `${score}/${questions.length} (${percentage}%)`;
+            
+            let message = '';
+            if (percentage >= 90) {
+                message = '🎉 Excellent! You have a strong understanding of deep learning concepts!';
+            } else if (percentage >= 80) {
+                message = '👏 Great job! You have a good grasp of deep learning fundamentals!';
+            } else if (percentage >= 70) {
+                message = '👍 Well done! You understand most deep learning concepts!';
+            } else if (percentage >= 60) {
+                message = '📚 Good effort! Consider reviewing some concepts and try again!';
+            } else {
+                message = '📖 Keep learning! Review the fundamentals and take the quiz again!';
+            }
+            
+            document.getElementById('scoreMessage').textContent = message;
+        }
+
+        function restartQuiz() {
+            currentQuestion = 0;
+            score = 0;
+            answered = false;
+            selectedOption = -1;
+            
+            document.getElementById('quizContent').style.display = 'block';
+            document.getElementById('results').style.display = 'none';
+            document.getElementById('nextBtn').textContent = 'Next Question';
+            
+            displayQuestion();
+        }
+
+        function exitQuiz() {
+            if (confirm('Are you sure you want to exit the quiz? Your progress will be lost.')) {
+                restartQuiz();
+            }
+        }
+
+        // Initialize quiz
+        displayQuestion();
+    </script>
+</body>
+</html>
